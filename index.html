@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AI Hub">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Manish's AI Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1220; --panel:#171b2e; --panel2:#1e2340; --line:#2a3052;
+    --text:#eef0fa; --muted:#a3a9c7; --accent:#7c8cff; --accent2:#4fd1c5;
+    --free:#3ecf8e; --star:#ffcb6b; --radius:16px;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f5f6fb; --panel:#ffffff; --panel2:#eef0fa; --line:#dde0ee;
+      --text:#171a2c; --muted:#5d6385; --accent:#4c5ce0; --accent2:#0f9e93; --free:#14935a; --star:#b7791f; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+  .wrap{max-width:1100px;margin:0 auto;padding:calc(24px + env(safe-area-inset-top)) 16px calc(60px + env(safe-area-inset-bottom))}
+  header h1{font-size:clamp(26px,5vw,38px);margin:0 0 4px;font-weight:800;letter-spacing:-.02em}
+  header p{margin:0;color:var(--muted)}
+  .grad{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  h2{font-size:20px;margin:34px 0 12px;font-weight:700}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+  .area{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+  .area b{display:block;font-size:15px}
+  .area span{font-size:13px;color:var(--muted)}
+  .starter{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+  .starter a{display:flex;gap:10px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--text);text-decoration:none;font-weight:600}
+  .starter a:hover{border-color:var(--accent)}
+  .starter small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+  .num{background:var(--accent);color:#fff;border-radius:50%;width:24px;height:24px;display:grid;place-items:center;font-size:13px;flex:none}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  td,th{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  tr:last-child td{border-bottom:none}
+  .controls{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;display:flex;flex-direction:column;gap:10px}
+  input[type=search]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;font-size:15px}
+  input[type=search]:focus{outline:2px solid var(--accent);border-color:transparent}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+  .chip{flex:none;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .cat h3{font-size:18px;margin:26px 0 10px;display:flex;align-items:center;gap:8px}
+  .cat h3 small{color:var(--muted);font-weight:500;font-size:13px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:8px}
+  .card.top{border-color:var(--star)}
+  .row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .name{font-weight:700;font-size:17px}
+  .badges{display:flex;gap:6px;flex-wrap:wrap}
+  .b{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+  .b.free{color:var(--free);border-color:var(--free)}
+  .b.star{color:var(--star);border-color:var(--star)}
+  .lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent2)}
+  .card p{margin:0;font-size:14px}
+  .card p.help{color:var(--muted)}
+  .open{margin-top:auto;align-self:flex-start;display:inline-flex;gap:6px;align-items:center;padding:8px 14px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;font-size:14px}
+  .open:hover{filter:brightness(1.1)}
+  .empty{color:var(--muted);text-align:center;padding:30px 0;display:none}
+  .tip{margin-top:30px;font-size:13px;color:var(--muted)}
+  .tip b{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🏠 <span class="grad">Manish's AI Hub</span></h1>
+    <p>All my AI tools in one place: what each one is for, and how it helps me.</p>
+  </header>
+
+  <h2>🎯 My 6 life areas</h2>
+  <div class="areas">
+    <div class="area"><b>🛡️ Cyber study</b><span>CDU units, certifications</span></div>
+    <div class="area"><b>🚀 Startup</b><span>1 step every week</span></div>
+    <div class="area"><b>🧠 New skills</b><span>AI, cloud, what's new</span></div>
+    <div class="area"><b>💪 Health</b><span>Gym, sleep, food</span></div>
+    <div class="area"><b>❤️ Relationships & peace</b><span>Family time, meditation</span></div>
+    <div class="area"><b>💰 Money</b><span>Save, invest, budget</span></div>
+  </div>
+
+  <h2>⭐ My starter pack (master these first)</h2>
+  <div class="starter">
+    <a href="https://claude.ai" target="_blank" rel="noopener"><span class="num">1</span><span>Claude<small>Main brain + AI employee</small></span></a>
+    <a href="https://notebooklm.google.com" target="_blank" rel="noopener"><span class="num">2</span><span>NotebookLM<small>Lecture notes → quizzes</small></span></a>
+    <a href="https://www.perplexity.ai" target="_blank" rel="noopener"><span class="num">3</span><span>Perplexity<small>Research with sources</small></span></a>
+    <a href="https://education.github.com/pack" target="_blank" rel="noopener"><span class="num">4</span><span>GitHub Copilot<small>Free with Student Pack</small></span></a>
+    <a href="https://www.canva.com" target="_blank" rel="noopener"><span class="num">5</span><span>Canva<small>Startup design</small></span></a>
+    <a href="https://n8n.io" target="_blank" rel="noopener"><span class="num">6</span><span>n8n<small>Automation (later)</small></span></a>
+  </div>
+
+  <h2>📅 My weekly rhythm</h2>
+  <div class="panel">
+    <table>
+      <tr><th>When</th><th>What I do</th></tr>
+      <tr><td><b>Every day</b></td><td>Open Claude: “What should I focus on today?” + gym + 15–30 min learning</td></tr>
+      <tr><td><b>Mon–Fri</b></td><td>Study + work + gym</td></tr>
+      <tr><td><b>Saturday</b></td><td>1 hour startup step</td></tr>
+      <tr><td><b>Sunday 5:47 pm</b></td><td>Read my automatic Claude weekly review → set next week's goals + money check</td></tr>
+    </table>
+  </div>
+
+  <h2>🧰 All my AI tools</h2>
+  <div class="controls">
+    <input id="q" type="search" placeholder="Search tools… (e.g. notes, video, code, free)" aria-label="Search tools">
+    <div class="chips" id="chips"></div>
+  </div>
+  <div id="list"></div>
+  <div class="empty" id="empty">No tools match. Try another word.</div>
+
+  <p class="tip">💡 <b>Tip:</b> Don't use them all at once: master 3 first, then add more. Always follow CDU's rules on using AI in assignments. For money decisions, use official sources and a licensed adviser. AI explains, you decide.</p>
+</div>
+
+<script>
+const CATS = [
+  {id:"chat", icon:"🧠", name:"Chat assistants", sub:"your brain helpers"},
+  {id:"research", icon:"🔍", name:"Research & study", sub:"CDU units, papers, writing"},
+  {id:"code", icon:"💻", name:"Coding", sub:"important for cyber"},
+  {id:"cyber", icon:"🛡️", name:"Cybersecurity", sub:"job skills & labs"},
+  {id:"auto", icon:"⚙️", name:"Automation & agents", sub:"AI that works for me"},
+  {id:"media", icon:"🎨", name:"Images, video & design", sub:"for my startup"},
+  {id:"voice", icon:"🎙️", name:"Voice & meetings", sub:"lectures, voiceovers"},
+  {id:"prod", icon:"📒", name:"Productivity & life", sub:"plan, organise, present"},
+  {id:"money", icon:"💰", name:"Money", sub:"save, invest, budget"}
+];
+
+const TOOLS = [
+  {c:"chat", n:"Claude", u:"https://claude.ai", free:1, top:1,
+   o:"Long writing, assignments, explaining hard topics, coding, and scheduled tasks/agents.",
+   h:"My main hub. Explains CDU topics simply, plans my week, runs my Sunday review automatically, reads my Gmail and helps build my startup."},
+  {c:"chat", n:"ChatGPT", u:"https://chatgpt.com", free:1,
+   o:"All-rounder: chat, image making, voice conversations, quick everyday questions.",
+   h:"Second opinion on answers, quick images, and voice chat to practise explaining topics or interview answers out loud."},
+  {c:"chat", n:"Gemini (Google)", u:"https://gemini.google.com", free:1,
+   o:"Google's AI that works inside Gmail, Docs, Drive and YouTube.",
+   h:"Summarises long YouTube tutorials and works directly in my Google files."},
+  {c:"chat", n:"Microsoft Copilot", u:"https://copilot.microsoft.com", free:1,
+   o:"Microsoft's AI that works inside Word, Excel, PowerPoint and Outlook.",
+   h:"Helps with CDU Word/Excel/PowerPoint work and is used in many workplaces, so it's good to know for jobs."},
+  {c:"chat", n:"Grok", u:"https://grok.com", free:1,
+   o:"AI with real-time news and trends from X (Twitter).",
+   h:"Quick check on breaking cyber news and what security people are talking about right now."},
+  {c:"research", n:"Perplexity", u:"https://www.perplexity.ai", free:1, top:1,
+   o:"Google-style search that gives answers with sources you can click.",
+   h:"Fast research for assignments and startup ideas, with sources I can check and reference."},
+  {c:"research", n:"NotebookLM (Google)", u:"https://notebooklm.google.com", free:1, top:1,
+   o:"Upload PDFs and notes → get summaries, quizzes, flashcards and an audio podcast of them.",
+   h:"Turn CDU lecture slides into quizzes and podcasts I can listen to while driving or at the gym. Great for exams."},
+  {c:"research", n:"Consensus", u:"https://consensus.app", free:1,
+   o:"Searches academic research papers and summarises what they found.",
+   h:"Find real academic sources for CDU reports and literature reviews."},
+  {c:"research", n:"Elicit", u:"https://elicit.com", free:1,
+   o:"AI research assistant that finds, sorts and summarises papers.",
+   h:"Speeds up literature reviews by pulling key points from many papers into one table."},
+  {c:"research", n:"Grammarly", u:"https://www.grammarly.com", free:1,
+   o:"Fixes grammar, spelling and clarity as you type.",
+   h:"Makes my assignments, emails and job applications sound professional."},
+  {c:"research", n:"QuillBot", u:"https://quillbot.com", free:1,
+   o:"Paraphrasing, grammar check and summarising.",
+   h:"Rewords my own sentences to read better. Use it on my writing only, and follow CDU's academic integrity rules."},
+  {c:"code", n:"Claude Code", u:"https://claude.com/claude-code",
+   o:"An AI coding agent that builds, fixes and explains code step by step.",
+   h:"Build scripts, security tools and my startup website faster, and learn from how it solves problems."},
+  {c:"code", n:"GitHub Copilot", u:"https://education.github.com/pack", free:1, top:1,
+   o:"Suggests code inside VS Code as you type. Free for students via the GitHub Student Pack.",
+   h:"Write Python/Bash for cyber labs faster. The Student Pack also gives many other free developer tools."},
+  {c:"code", n:"Cursor", u:"https://cursor.com", free:1,
+   o:"A code editor with AI built into it.",
+   h:"Ask questions about a whole project and edit code by chatting. Good for bigger coding projects."},
+  {c:"cyber", n:"Microsoft Security Copilot", u:"https://learn.microsoft.com/en-us/copilot/security/",
+   o:"AI used by real security teams (SOC analysts) to investigate threats and incidents.",
+   h:"Learn what it does now, because employers use it. Knowing it is a plus for SOC analyst jobs and my internship."},
+  {c:"cyber", n:"Claude / ChatGPT for cyber", u:"https://claude.ai", free:1,
+   o:"Explain CVEs, logs, malware reports and practice exam questions.",
+   h:"My personal cyber tutor: paste a log or a CVE and get it explained simply, or get quizzed for certifications like Security+."},
+  {c:"cyber", n:"TryHackMe", u:"https://tryhackme.com", free:1,
+   o:"Beginner-friendly hands-on hacking labs in your browser.",
+   h:"Real practice for cyber skills, plus a profile and badges I can show employers."},
+  {c:"cyber", n:"Hack The Box", u:"https://www.hackthebox.com", free:1,
+   o:"Harder hacking labs, challenges and certifications.",
+   h:"Next level after TryHackMe. Builds skills for penetration testing roles."},
+  {c:"auto", n:"Claude scheduled tasks", u:"https://claude.ai", free:0, top:1,
+   o:"Claude runs tasks for me automatically on a schedule.",
+   h:"My AI employee ✅. The Sunday review checks my email, cyber & AI news, money and goals every week."},
+  {c:"auto", n:"n8n", u:"https://n8n.io", free:1,
+   o:"Connects apps: “when X happens, do Y”. Free if self-hosted.",
+   h:"Learn APIs, webhooks and Docker (real job skills), and build automations to sell to small businesses."},
+  {c:"auto", n:"Zapier", u:"https://zapier.com", free:1,
+   o:"Easy no-code app automation.",
+   h:"Quick, simple automations without any setup, e.g. save email attachments to Drive."},
+  {c:"auto", n:"Make", u:"https://www.make.com", free:1,
+   o:"Visual no-code automation, cheaper than Zapier for bigger flows.",
+   h:"Build visual workflows for my startup without hosting anything."},
+  {c:"media", n:"Canva AI", u:"https://www.canva.com", free:1, top:1,
+   o:"Logos, posters, social posts, slides and simple videos.",
+   h:"Make my startup logo, flyers and social posts, plus nice-looking slides for CDU presentations."},
+  {c:"media", n:"Midjourney", u:"https://www.midjourney.com",
+   o:"The best-looking AI images.",
+   h:"High-quality images for my startup brand and website (paid)."},
+  {c:"media", n:"ChatGPT images", u:"https://chatgpt.com", free:1,
+   o:"Make images just by describing them in chat.",
+   h:"Quick free images for posts and ideas."},
+  {c:"media", n:"Google Imagen (in Gemini)", u:"https://gemini.google.com", free:1,
+   o:"Google's image generator, inside Gemini.",
+   h:"Another free option for quick images and mockups."},
+  {c:"media", n:"CapCut", u:"https://www.capcut.com", free:1,
+   o:"Easy video editing for TikTok, Reels and YouTube, with AI captions.",
+   h:"Make short videos to market my startup or share cyber tips online."},
+  {c:"media", n:"Runway", u:"https://runwayml.com",
+   o:"Make and edit videos with AI.",
+   h:"Create short promo clips for the startup."},
+  {c:"media", n:"Google Veo", u:"https://deepmind.google/models/veo/",
+   o:"Google's AI video generator.",
+   h:"Turn a text idea into a short video for ads or social posts."},
+  {c:"media", n:"Sora", u:"https://sora.com",
+   o:"OpenAI's AI video generator.",
+   h:"Another option for making short AI videos."},
+  {c:"media", n:"Synthesia", u:"https://www.synthesia.io",
+   o:"Videos with AI avatars that talk.",
+   h:"Make training or explainer videos (e.g. “cyber safety tips for small businesses”) without filming myself."},
+  {c:"media", n:"HeyGen", u:"https://www.heygen.com", free:1,
+   o:"AI talking avatars and video translation.",
+   h:"Make videos in English, Nepali and Hindi to reach more customers."},
+  {c:"voice", n:"Otter.ai", u:"https://otter.ai", free:1,
+   o:"Records lectures and meetings and writes notes automatically.",
+   h:"Record CDU lectures and group meetings and get notes and action items, so I never miss anything."},
+  {c:"voice", n:"Fireflies", u:"https://fireflies.ai", free:1,
+   o:"AI notetaker that joins Zoom/Teams calls.",
+   h:"Automatic notes from online group project meetings."},
+  {c:"voice", n:"ElevenLabs", u:"https://elevenlabs.io", free:1,
+   o:"Realistic AI voices and voiceovers.",
+   h:"Voiceovers for startup videos, or turn my notes into audio to listen to."},
+  {c:"prod", n:"Notion AI", u:"https://www.notion.so",
+   o:"Notes, planner and second brain with AI built in.",
+   h:"Keep all my notes, goals, startup ideas and study plans in one organised place."},
+  {c:"prod", n:"Motion", u:"https://www.usemotion.com",
+   o:"Auto-plans your calendar around your tasks.",
+   h:"Fits study, shifts, gym and startup time into my week automatically (paid)."},
+  {c:"prod", n:"Reclaim", u:"https://reclaim.ai", free:1,
+   o:"Smart calendar that protects time for habits and tasks.",
+   h:"Blocks time for gym, meditation and study around my work shifts."},
+  {c:"prod", n:"Gamma", u:"https://gamma.app", free:1,
+   o:"Makes slide presentations in seconds from text.",
+   h:"Quick first drafts of CDU presentations and startup pitch decks."},
+  {c:"money", n:"Claude / ChatGPT for money", u:"https://claude.ai", free:1,
+   o:"Explain ETFs, super and budgets, and build a budget sheet.",
+   h:"Learn how investing works in simple words and build my budget. It gives info, not personal financial advice."},
+  {c:"money", n:"Moneysmart.gov.au", u:"https://moneysmart.gov.au", free:1,
+   o:"Australian government money tools and guides (not AI, but trusted).",
+   h:"Budget planner, savings and super calculators, and safe investing basics. My trusted check before money decisions."}
+];
+
+let active = "all";
+const chips = document.getElementById("chips");
+const mk = (id,label) => { const b=document.createElement("button"); b.className="chip"+(id===active?" on":""); b.textContent=label; b.onclick=()=>{active=id; render(); [...chips.children].forEach(x=>x.classList.toggle("on", x===b));}; chips.appendChild(b); };
+mk("all","All");
+CATS.forEach(c=>mk(c.id, c.icon+" "+c.name));
+
+const esc = s => s.replace(/[&<>"]/g, ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+
+function render(){
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const list = document.getElementById("list");
+  let html = "", count = 0;
+  CATS.forEach(cat=>{
+    if(active!=="all" && active!==cat.id) return;
+    const items = TOOLS.filter(t=>t.c===cat.id && (!q || (t.n+" "+t.o+" "+t.h+" "+cat.name+(t.free?" free":"")).toLowerCase().includes(q)));
+    if(!items.length) return;
+    count += items.length;
+    html += '<section class="cat"><h3>'+cat.icon+' '+cat.name+' <small>'+cat.sub+'</small></h3><div class="grid">';
+    items.forEach(t=>{
+      html += '<div class="card'+(t.top?' top':'')+'">'
+        + '<div class="row"><span class="name">'+esc(t.n)+'</span>'
+        + '<span class="badges">'+(t.top?'<span class="b star">⭐ Starter</span>':'')+(t.free?'<span class="b free">🆓 Free</span>':'<span class="b">Paid</span>')+'</span></div>'
+        + '<span class="lbl">Objective</span><p>'+esc(t.o)+'</p>'
+        + '<span class="lbl">How it helps me</span><p class="help">'+esc(t.h)+'</p>'
+        + '<a class="open" href="'+t.u+'" target="_blank" rel="noopener">Open ↗</a>'
+        + '</div>';
+    });
+    html += '</div></section>';
+  });
+  list.innerHTML = html;
+  document.getElementById("empty").style.display = count ? "none" : "block";
+}
+document.getElementById("q").addEventListener("input", render);
+render();
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
