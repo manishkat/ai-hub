@@ -71,7 +71,7 @@
 <body>
 <div class="wrap">
   <header><h1>🏠 <span>AI Hub</span></h1></header>
-  <button class="voice" id="voiceBtn">🎙️ Tell AI what to build</button>
+  <button class="voice" id="voiceBtn">🎙️ Hey Pittu, build this</button>
   <input id="q" class="search" type="search" placeholder="Search apps…" aria-label="Search apps">
   <div id="list"></div>
   <div class="empty" id="empty">No apps found.</div>
@@ -93,17 +93,17 @@
 
 <div class="sheet" id="build" role="dialog" aria-modal="true">
   <div class="grab"></div>
-  <h3 style="margin:0;font-size:21px">🎙️ Build with voice</h3>
+  <h3 style="margin:0;font-size:21px">🎙️ Pittu</h3><p class="hint" style="text-align:left;margin-top:4px">Your AI builder. Just say “Pittu, make me…”</p>
   <div class="modes" id="modes">
     <button class="mode on" data-m="web">🌐 Website prototype</button>
     <button class="mode" data-m="app">📱 App screens</button>
     <button class="mode" data-m="any">💬 Anything</button>
   </div>
   <button class="mic" id="mic" aria-label="Start speaking">🎙️</button>
-  <p class="hint" id="hint">Tap the mic and say what you want</p>
-  <textarea id="idea" placeholder="e.g. A website for my cyber security business in Darwin that does security health checks for small businesses"></textarea>
-  <div class="btns"><a class="open" id="send" target="_blank" rel="noopener">Send to Claude ↗</a><button class="close" id="copyBtn">Copy</button></div>
-  <p class="hint" style="margin-top:12px">Claude opens with your request ready. Check it, then press send.</p>
+  <p class="hint" id="hint">Tap the mic and talk to Pittu</p>
+  <textarea id="idea" placeholder="e.g. Pittu, make me a website for my cyber security business in Darwin that does security health checks for small businesses"></textarea>
+  <div class="btns"><a class="open" id="send" target="_blank" rel="noopener">Pittu, build it ↗</a><button class="close" id="copyBtn">Copy</button></div>
+  <p class="hint" style="margin-top:12px">Pittu sends your request to Claude. Check it, then press send.</p>
 </div>
 
 <script>
@@ -291,11 +291,12 @@ function closeSheet(){ sheet.classList.remove("show"); build.classList.remove("s
 const build = document.getElementById("build"), idea = document.getElementById("idea"), mic = document.getElementById("mic"), hint = document.getElementById("hint"), copyBtn = document.getElementById("copyBtn");
 let mode = "web", rec = null, recording = false, base = "";
 const TPL = {
-  web: "Design a clickable website prototype for: IDEA\n\nMake it with Claude Design (the Design type). If I add a Figma link, use my Figma connector to match that design.\nInclude: a home page and the main pages, desktop and mobile layouts, clear navigation, a clean modern style and realistic placeholder text.\nOnly ask me up to 2 short questions if something important is missing.",
-  app: "Design mobile app screens for: IDEA\n\nMake them with Claude Design (the Design type). If I add a Figma link, use my Figma connector to match that design.\nInclude: the main screens, the flow between them, a clean modern style and realistic placeholder content.\nOnly ask me up to 2 short questions if something important is missing.",
+  web: "Design a clickable website prototype for: IDEA\n\nCreate it in a new Figma file using my Figma connector. If Figma is not available, make it with Claude Design instead. If I add a Figma link, match that design.\nInclude: a home page and the main pages, desktop and mobile layouts, clear navigation, a clean modern style and realistic placeholder text.\nOnly ask me up to 2 short questions if something important is missing.",
+  app: "Design mobile app screens for: IDEA\n\nCreate them in a new Figma file using my Figma connector. If Figma is not available, make them with Claude Design instead. If I add a Figma link, match that design.\nInclude: the main screens, the flow between them, a clean modern style and realistic placeholder content.\nOnly ask me up to 2 short questions if something important is missing.",
   any: "IDEA"
 };
-const buildPrompt = () => TPL[mode].replace("IDEA", idea.value.trim() || "(describe your idea)");
+const stripWake = s => s.replace(/^((hey|hi|ok|okay)\s+)?(pittu|pitu|pitoo|petu|pithu|pittoo)[\s,.!:]*/i, "");
+const buildPrompt = () => TPL[mode].replace("IDEA", stripWake(idea.value.trim()) || "(describe your idea)");
 const updLink = () => { document.getElementById("send").href = "https://claude.ai/new?q=" + encodeURIComponent(buildPrompt()); copyBtn.textContent = "Copy"; };
 document.getElementById("voiceBtn").addEventListener("click", () => { updLink(); build.classList.add("show"); overlay.classList.add("show"); });
 document.getElementById("modes").addEventListener("click", e => { const b = e.target.closest(".mode"); if(!b) return; mode = b.dataset.m; [...document.querySelectorAll(".mode")].forEach(x => x.classList.toggle("on", x === b)); updLink(); });
@@ -307,7 +308,7 @@ mic.addEventListener("click", () => {
   if(recording){ rec.stop(); return; }
   rec = new SR(); rec.lang = "en-AU"; rec.interimResults = true; rec.continuous = true;
   base = idea.value.trim() ? idea.value.trim() + " " : "";
-  rec.onstart = () => { recording = true; mic.classList.add("rec"); hint.textContent = "Listening… tap again to stop"; };
+  rec.onstart = () => { recording = true; mic.classList.add("rec"); hint.textContent = "Pittu is listening… tap again to stop"; };
   rec.onresult = e => { let t = ""; for(let i = 0; i < e.results.length; i++){ t += e.results[i][0].transcript; } idea.value = base + t; updLink(); };
   rec.onerror = e => { hint.textContent = e.error === "not-allowed" ? "Please allow microphone access, or use the 🎤 on your keyboard." : "Voice problem (" + e.error + "). Try again or type."; };
   rec.onend = () => { recording = false; mic.classList.remove("rec"); if(!hint.textContent.startsWith("Please") && !hint.textContent.startsWith("Voice")) hint.textContent = "Done. Edit if needed, then send."; };
