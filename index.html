@@ -66,6 +66,22 @@
   .mic.rec{background:#e5484d;animation:pulse 1.2s infinite}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(229,72,77,.6)}100%{box-shadow:0 0 0 18px rgba(229,72,77,0)}}
   .hint{text-align:center;font-size:13px;color:var(--muted);margin:0}
+  .phead{display:flex;justify-content:space-between;align-items:center}
+  .addp{background:none;border:1px solid var(--line);color:var(--text);border-radius:999px;padding:5px 12px;font:inherit;font-size:12px;cursor:pointer;text-transform:none;letter-spacing:0}
+  .pempty{color:var(--muted);font-size:13px;margin:0 4px}
+  .ptiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .ptile{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 12px 10px;cursor:pointer}
+  .ptile:active{transform:scale(.98)}
+  .ptile b{display:block;font-size:14px;margin-bottom:2px;padding-right:18px}
+  .ptile small{color:var(--muted);font-size:12px}
+  .ptile .x{position:absolute;top:4px;right:6px;color:var(--muted);font-size:18px;background:none;border:none;cursor:pointer}
+  .viewer{position:fixed;inset:0;z-index:20;background:var(--bg);display:none;flex-direction:column}
+  .viewer.show{display:flex}
+  .vbar{display:flex;align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;border-bottom:1px solid var(--line)}
+  .vbar b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .vbar a{color:var(--accent2);font-size:13px;text-decoration:none;white-space:nowrap}
+  .vbar button{background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;line-height:1}
+  .viewer iframe{flex:1;border:0;width:100%;background:#1e1e1e}
 </style>
 </head>
 <body>
@@ -73,8 +89,14 @@
   <header><h1>🏠 <span>AI Hub</span></h1></header>
   <button class="voice" id="voiceBtn">🎙️ Hey Pittu, build this</button>
   <input id="q" class="search" type="search" placeholder="Search apps…" aria-label="Search apps">
+  <div id="protoBox"></div>
   <div id="list"></div>
   <div class="empty" id="empty">No apps found.</div>
+</div>
+
+<div class="viewer" id="viewer">
+  <div class="vbar"><button id="vClose" aria-label="Close">‹</button><b id="vTitle"></b><a id="vOpen" target="_blank" rel="noopener">Open in Figma ↗</a></div>
+  <iframe id="vFrame" title="Figma prototype" allowfullscreen></iframe>
 </div>
 
 <div class="overlay" id="overlay"></div>
@@ -301,7 +323,8 @@ const TPL = {
   any: "IDEA"
 };
 const stripWake = s => s.replace(/^((hey|hi|ok|okay)\s+)?(pittu|pitu|pitoo|petu|pithu|pittoo)[\s,.!:]*/i, "");
-const buildPrompt = () => TPL[mode].replace("IDEA", stripWake(idea.value.trim()) || "(describe your idea)");
+const RETURN = "\n\nWhen the Figma file is ready, also give me this link so the prototype opens in my AI Hub: https://manishkat.github.io/ai-hub/#add=<the Figma file URL, URL-encoded>&name=<short name, URL-encoded>";
+const buildPrompt = () => TPL[mode].replace("IDEA", stripWake(idea.value.trim()) || "(describe your idea)") + (mode === "any" ? "" : RETURN);
 const updLink = () => { document.getElementById("send").href = "https://claude.ai/new?q=" + encodeURIComponent(buildPrompt()); copyBtn.textContent = "Copy"; };
 document.getElementById("voiceBtn").addEventListener("click", () => { updLink(); build.classList.add("show"); overlay.classList.add("show"); });
 document.getElementById("modes").addEventListener("click", e => { const b = e.target.closest(".mode"); if(!b) return; mode = b.dataset.m; [...document.querySelectorAll(".mode")].forEach(x => x.classList.toggle("on", x === b)); updLink(); });
@@ -325,6 +348,42 @@ document.getElementById("sClose").addEventListener("click", closeSheet);
 document.addEventListener("keydown", e => { if(e.key==="Escape") closeSheet(); });
 document.getElementById("q").addEventListener("input", render);
 render();
+
+/* ---- My prototypes (Figma viewer) ---- */
+const PKEY = "aihub_protos";
+const loadP = () => { try { return JSON.parse(localStorage.getItem(PKEY)) || []; } catch(e) { return []; } };
+const saveP = a => { try { localStorage.setItem(PKEY, JSON.stringify(a)); } catch(e) {} };
+const isFigma = u => /^https:\/\/([\w-]+\.)?figma\.com\//.test(u || "");
+const nameFrom = u => { try { const p = new URL(u).pathname.split("/"); return decodeURIComponent(p[3] || "Prototype").replace(/-/g, " "); } catch(e) { return "Prototype"; } };
+function addProto(u, n){ if(!isFigma(u)) return null; const a = loadP().filter(p => p.url !== u); const p = {url:u, name:(n || nameFrom(u)).slice(0,60), ts:Date.now()}; a.unshift(p); saveP(a); renderProtos(); return p; }
+function renderProtos(){
+  const a = loadP();
+  let h = '<h2 class="phead"><span>📐 My prototypes</span><button class="addp" id="addP">+ Add</button></h2>';
+  if(!a.length) h += '<p class="pempty">Prototypes Pittu builds in Figma will show here.</p>';
+  else { h += '<div class="ptiles">'; a.forEach((p,i) => { h += '<div class="ptile" data-p="'+i+'"><button class="x" data-del="'+i+'" aria-label="Remove">×</button><b>'+esc(p.name)+'</b><small>'+new Date(p.ts).toLocaleDateString()+'</small></div>'; }); h += '</div>'; }
+  document.getElementById("protoBox").innerHTML = h;
+}
+const viewer = document.getElementById("viewer"), vFrame = document.getElementById("vFrame");
+function openViewer(p){ document.getElementById("vTitle").textContent = p.name; document.getElementById("vOpen").href = p.url; vFrame.src = "https://www.figma.com/embed?embed_host=aihub&url=" + encodeURIComponent(p.url); viewer.classList.add("show"); }
+document.getElementById("vClose").addEventListener("click", () => { viewer.classList.remove("show"); vFrame.src = "about:blank"; });
+document.getElementById("protoBox").addEventListener("click", e => {
+  if(e.target.id === "addP"){
+    const u = (prompt("Paste the Figma link:") || "").trim(); if(!u) return;
+    if(!isFigma(u)){ alert("That doesn't look like a Figma link."); return; }
+    const p = addProto(u, prompt("Name this prototype:", nameFrom(u))); if(p) openViewer(p); return;
+  }
+  const d = e.target.closest("[data-del]");
+  if(d){ e.stopPropagation(); if(confirm("Remove from AI Hub? (It stays in Figma.)")){ const a = loadP(); a.splice(+d.dataset.del, 1); saveP(a); renderProtos(); } return; }
+  const t = e.target.closest(".ptile"); if(t) openViewer(loadP()[+t.dataset.p]);
+});
+function handleHash(){
+  if(!location.hash.startsWith("#add=")) return;
+  const q = new URLSearchParams(location.hash.slice(1));
+  history.replaceState(null, "", location.pathname + location.search);
+  const p = addProto(q.get("add"), q.get("name")); if(p) openViewer(p);
+}
+window.addEventListener("hashchange", handleHash);
+renderProtos(); handleHash();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
