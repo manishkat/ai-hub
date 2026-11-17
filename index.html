@@ -94,6 +94,8 @@
 <div class="sheet" id="build" role="dialog" aria-modal="true">
   <div class="grab"></div>
   <h3 style="margin:0;font-size:21px">🎙️ Pittu</h3><p class="hint" style="text-align:left;margin-top:4px">Your AI builder. Just say “Pittu, make me…”</p>
+  <a class="open" style="display:block;margin-top:14px" href="https://claude.ai/project/01a1e772-33e1-72f9-af4d-7aa2cbed5be0" target="_blank" rel="noopener">🗣️ Talk to Pittu (answers &amp; does tasks)</a>
+  <p class="hint" style="margin-top:10px">Or send Pittu one quick build request:</p>
   <div class="modes" id="modes">
     <button class="mode on" data-m="web">🌐 Website prototype</button>
     <button class="mode" data-m="app">📱 App screens</button>
@@ -121,6 +123,9 @@ const CATS = [
 ];
 
 const TOOLS = [
+  {c:"chat", n:"Pittu", d:"claude.ai", u:"https://claude.ai/project/01a1e772-33e1-72f9-af4d-7aa2cbed5be0", col:"#7c8cff", free:1, top:1,
+   can:["Talk by voice and get spoken answers","Build website and app prototypes in Figma","Read and summarise your Gmail (asks before sending)","Research with sources, study help, startup and money info"],
+   h:"My own AI assistant (a Claude project). Open it, tap the voice button and say: Pittu, ..."},
   {c:"chat", n:"Claude", d:"claude.ai", u:"https://claude.ai", col:"#d97757", free:1, top:1,
    can:["Write and edit long assignments and reports","Explain hard topics step by step","Write and fix code","Read your Gmail, Drive and calendar (connectors)","Run scheduled tasks automatically (AI employee)"],
    h:"My main hub: explains CDU topics, plans my week, runs my Sunday review and helps build my startup."},
