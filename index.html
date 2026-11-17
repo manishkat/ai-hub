@@ -56,11 +56,22 @@
   .btns{display:flex;gap:10px;margin-top:22px}
   .open{flex:1;text-align:center;padding:13px;border-radius:14px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:16px}
   .close{padding:13px 18px;border-radius:14px;background:transparent;border:1px solid var(--line);color:var(--text);font:inherit;font-weight:600;cursor:pointer}
+  .voice{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border:none;border-radius:16px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#0f1220;font:inherit;font-weight:800;font-size:16px;cursor:pointer;margin:0 0 10px;box-shadow:0 6px 20px rgba(124,140,255,.35)}
+  .voice:active{transform:scale(.98)}
+  .modes{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .mode{padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--text);font:inherit;font-size:13px;cursor:pointer}
+  .mode.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  textarea{width:100%;min-height:110px;margin-top:12px;padding:12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);font:inherit;font-size:15px;resize:vertical}
+  .mic{width:76px;height:76px;border-radius:50%;border:none;background:var(--accent);color:#fff;font-size:32px;cursor:pointer;display:block;margin:18px auto 6px}
+  .mic.rec{background:#e5484d;animation:pulse 1.2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(229,72,77,.6)}100%{box-shadow:0 0 0 18px rgba(229,72,77,0)}}
+  .hint{text-align:center;font-size:13px;color:var(--muted);margin:0}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header><h1>🏠 <span>AI Hub</span></h1></header>
+  <button class="voice" id="voiceBtn">🎙️ Tell AI what to build</button>
   <input id="q" class="search" type="search" placeholder="Search apps…" aria-label="Search apps">
   <div id="list"></div>
   <div class="empty" id="empty">No apps found.</div>
@@ -78,6 +89,21 @@
   <div class="lbl">How it helps me</div>
   <p id="sHelp"></p>
   <div class="btns"><a class="open" id="sOpen" target="_blank" rel="noopener">Open app ↗</a><button class="close" id="sClose">Close</button></div>
+</div>
+
+<div class="sheet" id="build" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <h3 style="margin:0;font-size:21px">🎙️ Build with voice</h3>
+  <div class="modes" id="modes">
+    <button class="mode on" data-m="web">🌐 Website prototype</button>
+    <button class="mode" data-m="app">📱 App screens</button>
+    <button class="mode" data-m="any">💬 Anything</button>
+  </div>
+  <button class="mic" id="mic" aria-label="Start speaking">🎙️</button>
+  <p class="hint" id="hint">Tap the mic and say what you want</p>
+  <textarea id="idea" placeholder="e.g. A website for my cyber security business in Darwin that does security health checks for small businesses"></textarea>
+  <div class="btns"><a class="open" id="send" target="_blank" rel="noopener">Send to Claude ↗</a><button class="close" id="copyBtn">Copy</button></div>
+  <p class="hint" style="margin-top:12px">Claude opens with your request ready. Check it, then press send.</p>
 </div>
 
 <script>
@@ -259,7 +285,34 @@ function openSheet(i){
   document.getElementById("sOpen").href = t.u;
   sheet.classList.add("show"); overlay.classList.add("show");
 }
-function closeSheet(){ sheet.classList.remove("show"); overlay.classList.remove("show"); }
+function closeSheet(){ sheet.classList.remove("show"); build.classList.remove("show"); overlay.classList.remove("show"); if(recording && rec) rec.stop(); }
+
+/* ---- Build with voice ---- */
+const build = document.getElementById("build"), idea = document.getElementById("idea"), mic = document.getElementById("mic"), hint = document.getElementById("hint"), copyBtn = document.getElementById("copyBtn");
+let mode = "web", rec = null, recording = false, base = "";
+const TPL = {
+  web: "Design a clickable website prototype for: IDEA\n\nMake it with Claude Design (the Design type). If I add a Figma link, use my Figma connector to match that design.\nInclude: a home page and the main pages, desktop and mobile layouts, clear navigation, a clean modern style and realistic placeholder text.\nOnly ask me up to 2 short questions if something important is missing.",
+  app: "Design mobile app screens for: IDEA\n\nMake them with Claude Design (the Design type). If I add a Figma link, use my Figma connector to match that design.\nInclude: the main screens, the flow between them, a clean modern style and realistic placeholder content.\nOnly ask me up to 2 short questions if something important is missing.",
+  any: "IDEA"
+};
+const buildPrompt = () => TPL[mode].replace("IDEA", idea.value.trim() || "(describe your idea)");
+const updLink = () => { document.getElementById("send").href = "https://claude.ai/new?q=" + encodeURIComponent(buildPrompt()); copyBtn.textContent = "Copy"; };
+document.getElementById("voiceBtn").addEventListener("click", () => { updLink(); build.classList.add("show"); overlay.classList.add("show"); });
+document.getElementById("modes").addEventListener("click", e => { const b = e.target.closest(".mode"); if(!b) return; mode = b.dataset.m; [...document.querySelectorAll(".mode")].forEach(x => x.classList.toggle("on", x === b)); updLink(); });
+idea.addEventListener("input", updLink);
+copyBtn.addEventListener("click", () => { navigator.clipboard.writeText(buildPrompt()).then(() => copyBtn.textContent = "Copied ✓").catch(() => { idea.select(); copyBtn.textContent = "Select & copy"; }); });
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+mic.addEventListener("click", () => {
+  if(!SR){ hint.textContent = "Voice isn't supported here. Tap the 🎤 on your keyboard instead."; idea.focus(); return; }
+  if(recording){ rec.stop(); return; }
+  rec = new SR(); rec.lang = "en-AU"; rec.interimResults = true; rec.continuous = true;
+  base = idea.value.trim() ? idea.value.trim() + " " : "";
+  rec.onstart = () => { recording = true; mic.classList.add("rec"); hint.textContent = "Listening… tap again to stop"; };
+  rec.onresult = e => { let t = ""; for(let i = 0; i < e.results.length; i++){ t += e.results[i][0].transcript; } idea.value = base + t; updLink(); };
+  rec.onerror = e => { hint.textContent = e.error === "not-allowed" ? "Please allow microphone access, or use the 🎤 on your keyboard." : "Voice problem (" + e.error + "). Try again or type."; };
+  rec.onend = () => { recording = false; mic.classList.remove("rec"); if(!hint.textContent.startsWith("Please") && !hint.textContent.startsWith("Voice")) hint.textContent = "Done. Edit if needed, then send."; };
+  try { rec.start(); } catch(err) { hint.textContent = "Couldn't start the mic. Type instead."; }
+});
 document.getElementById("list").addEventListener("click", e => { const b = e.target.closest(".app"); if(b) openSheet(+b.dataset.i); });
 overlay.addEventListener("click", closeSheet);
 document.getElementById("sClose").addEventListener("click", closeSheet);
